@@ -37,13 +37,9 @@ rule bin_summary_sample:
         tool="results/{project}/output/report/{sample}/{sample}_DASTool_summary.tsv",
         checkm="results/{project}/output/report/{sample}/checkm2_quality_report.tsv",
         gtdb="results/{project}/output/classification/bins/{sample}/{sample}.summary.tsv",
-        #args="results/{project}/output/ARGs/bins/{sample}/all_bins.done",
     output:
         csv_bins="results/{project}/output/report/{sample}/{sample}_bin_summary.csv",
-        csv_checkm="results/{project}/output/report/{sample}/{sample}_checkm2_summary.csv",
-        csv_dastool="results/{project}/output/report/{sample}/{sample}_DASTool_summary.csv",
         csv_tax="results/{project}/output/report/{sample}/{sample}_bin_taxonomy.csv",
-        csv_mags="results/{project}/output/report/{sample}/{sample}_mags_summary.csv",
     params:
         max_cont=config["MAG-criteria"]["max-contamination"],
         min_comp=config["MAG-criteria"]["min-completeness"],
@@ -77,54 +73,6 @@ use rule qc_summary_report as bin_sample_report with:
         "logs/{project}/report/{sample}/bin_rbt_csv.log",
 
 
-use rule qc_summary_report as dastool_report with:
-    input:
-        "results/{project}/output/report/{sample}/{sample}_DASTool_summary.csv",
-    output:
-        report(
-            directory("results/{project}/output/report/{sample}/dastool/"),
-            htmlindex="index.html",
-            category="4. Binning results",
-            subcategory="4.2 Quality control",
-            labels={
-                "sample": "{sample}",
-                "tool": "DAS Tool",
-            },
-        ),
-    params:
-        pin_until="bin",
-        styles="resources/report/tables/",
-        name="{sample}_DASTool_summary",
-        header="DAS Tool summary for sample {sample}",
-        pattern=config["tablular-config"],
-    log:
-        "logs/{project}/report/{sample}/dastool_rbt_csv.log",
-
-
-use rule qc_summary_report as checkm2_report with:
-    input:
-        "results/{project}/output/report/{sample}/{sample}_checkm2_summary.csv",
-    output:
-        report(
-            directory("results/{project}/output/report/{sample}/checkm2/"),
-            htmlindex="index.html",
-            category="4. Binning results",
-            subcategory="4.2 Quality control",
-            labels={
-                "sample": "{sample}",
-                "tool": "CheckM 2",
-            },
-        ),
-    params:
-        pin_until="bin",
-        styles="resources/report/tables/",
-        name="{sample}_CheckM2_summary",
-        header="CheckM2 summary for sample {sample}",
-        pattern=config["tablular-config"],
-    log:
-        "logs/{project}/report/{sample}/checkm2_rbt_csv.log",
-
-
 use rule qc_summary_report as taxonomy_report with:
     input:
         "results/{project}/output/report/{sample}/{sample}_bin_taxonomy.csv",
@@ -146,33 +94,8 @@ use rule qc_summary_report as taxonomy_report with:
         "logs/{project}/report/{sample}/taxonomy_rbt_csv.log",
 
 
-use rule qc_summary_report as mag_report with:
-    input:
-        "results/{project}/output/report/{sample}/{sample}_mags_summary.csv",
-    output:
-        report(
-            directory("results/{project}/output/report/{sample}/mags/"),
-            htmlindex="index.html",
-            category="5. Taxonomic classification",
-            subcategory="5.1 MAGs classification",
-            labels={"sample": "{sample}"},
-        ),
-    params:
-        pin_until="MAG",
-        styles="resources/report/tables/",
-        name="{sample}_MAG_summary",
-        header="MAG summary for sample {sample}",
-        pattern=config["tablular-config"],
-    log:
-        "logs/{project}/report/{sample}/mag_rbt_csv.log",
-
-
 rule bin_summary_all:
     input:
-        csv_mags=expand(
-            "results/{{project}}/output/report/{sample}/{sample}_mags_summary.csv",
-            sample=get_samples(),
-        ),
         csv_bins=expand(
             "results/{{project}}/output/report/{sample}/{sample}_bin_summary.csv",
             sample=get_samples(),

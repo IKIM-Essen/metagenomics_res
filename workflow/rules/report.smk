@@ -19,22 +19,10 @@ rule snakemake_report:
             sample=get_samples(),
         ),
         expand(
-            "results/{{project}}/output/report/{sample}/checkm2/",
-            sample=get_samples(),
-        ),
-        expand(
-            "results/{{project}}/output/report/{sample}/dastool/",
-            sample=get_samples(),
-        ),
-        expand(
             "results/{{project}}/output/report/{sample}/taxonomy/",
             sample=get_samples(),
         ),
         # 5. Taxonomic classification
-        expand(
-            "results/{{project}}/output/report/{sample}/mags/",
-            sample=get_samples(),
-        ),
         expand(
             "results/{{project}}/output/report/{sample}/{sample}_kaiju.out.html",
             sample=get_samples(),
