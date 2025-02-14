@@ -136,9 +136,11 @@ rule CARD_read_sample_summary:
     input:
         txt=rules.CARD_read_run.output.txt,
     output:
-        csv="results/{project}/output/ARGs/reads/{sample}/{sample}_read_ARGs.csv",
+        csv="results/{project}/output/ARGs/reads/{sample}/{sample}_ARGs_reads.csv",
     params:
         case="reads",
+        identity=config['ARG-criteria']['min-identity'],
+        coverage=config['ARG-criteria']['min-coverage'],
     log:
         "logs/{project}/ARGs/reads/{sample}.log",
     threads: 2
@@ -194,9 +196,11 @@ use rule CARD_read_sample_summary as CARD_assembly_sample_summary with:
         txt=rules.CARD_assembly_run.output.txt,
         json=rules.CARD_assembly_run.output.json,
     output:
-        csv="results/{project}/output/ARGs/assembly/{sample}/{sample}_assembly_ARGs.csv",
+        csv="results/{project}/output/ARGs/assembly/{sample}/{sample}_ARGs_contigs.csv",
     params:
         case="assembly",
+        identity=config['ARG-criteria']['min-identity'],
+        coverage=config['ARG-criteria']['min-coverage'],
     log:
         "logs/{project}/ARGs/assembly/{sample}.log",
 

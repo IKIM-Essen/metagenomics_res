@@ -51,6 +51,10 @@ MAG-criteria:
   min-completeness: 50.00
   max-contamination: 30.00
 
+ARG-criteria:
+  min-coverage: 50
+  min-identity: 50
+
 ### Handling of different databases
 kaiju:
   download: https://kaiju-idx.s3.eu-central-1.amazonaws.com/2023/kaiju_db_refseq_nr_2023-06-17.tgz

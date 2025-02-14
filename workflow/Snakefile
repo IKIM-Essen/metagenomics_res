@@ -65,12 +65,12 @@ rule all:
         ),
         # resistance analysis
         expand(
-            "results/{project}/output/ARGs/reads/{sample}/{sample}_read_ARGs.csv",
+            "results/{project}/output/ARGs/reads/{sample}/{sample}_ARGs_reads.csv",
             project=get_project(),
             sample=get_samples(),
         ),
         expand(
-            "results/{project}/output/ARGs/assembly/{sample}/{sample}_assembly_ARGs.csv",
+            "results/{project}/output/ARGs/assembly/{sample}/{sample}_ARGs_contigs.csv",
             project=get_project(),
             sample=get_samples(),
         ),

@@ -7,59 +7,79 @@ sys.stderr = open(snakemake.log[0], "w")
 # one of reads, assembly, mags
 in_case = snakemake.params.case
 
-# minimal average coverage of reference sequence
-min_coverage = 15
+# minimal coverage and identity of reference sequence
+min_coverage = snakemake.params.coverage
+min_identity = snakemake.params.identity
 
-def do_card_main_postprocessing(infile,json_infile, min_coverage):
-    to_keep=["Best_Identities","Percentage Length of Reference Sequence","Cut_Off","Best_Hit_ARO","ARO",
-             "Pass_Bitscore","Best_Hit_Bitscore","AMR Gene Family","Drug Class","Resistance Mechanism","Antibiotic"]
+def filter_RGI_main(df, path_to_json):
 
-    df=pd.read_table(infile, index_col="ORF_ID")
-    df_red=df[to_keep]
-
-    with open(json_infile, 'r') as f:
+    with open(path_to_json, 'r') as f:
         data = json.load(f)
 
-    eval_dict={}
+    cov_dict={}
     for orfid in df.index.to_list():
-        ident=df.at[orfid,"ID"]
-        evalue=data[orfid][ident]["evalue"]
-        eval_dict[orfid]=evalue
+        reference_id=df.at[orfid,"ID"]
 
-    eval_df=pd.DataFrame.from_dict(eval_dict,orient='index',columns=["evalue"])
+        #extract hit start and end from json
+        hit_start= data[orfid][reference_id]["hit_start"]
+        hit_end= data[orfid][reference_id]["hit_end"]
 
-    df_red=pd.concat([eval_df,df_red],axis=1)
-    df_red=df_red.sort_values(["Cut_Off","Best_Identities","Percentage Length of Reference Sequence"], ascending=[True,False,False])
-    df_red = df_red[df_red['Percentage Length of Reference Sequence'] > min_coverage]
-    df_red.index.name = "ORF_ID"
+        #calculate hit length on aminoacids
+        hit_len = (hit_end-hit_start)/3
 
-    return df_red
+        #extract reference (aminoacids) length from json
+        target_str = data[orfid][reference_id]["sequence_from_broadstreet"]
+        target_len = len(target_str)
+
+        #calculate coverage
+        coverage=round(((hit_len/target_len)*100),2)
+
+        cov_dict[orfid]=coverage
+
+    #remove reference ID from output df 
+    df.pop('ID')
+    df.insert(2, '%identity', df.pop('Best_Identities'))
+    df.insert(3, '%coverage', df.index.map(cov_dict))
+
+    # filter for minimum coverage and identity
+    df_filt = df[df['%identity'] >= min_identity]
+    df_filt = df_filt[df_filt['%coverage'] >= min_coverage]
+
+    # sort ARGs by %coverage and %identity
+    df_filt=df_filt.sort_values(["%coverage","%identity"], ascending=[False,False])
+
+    return(df_filt)
 
 
 if in_case == "reads":
     infile=snakemake.input.txt
     outfile=snakemake.output.csv
 
-    to_keep=["ARO Term","ARO Accession","All Mapped Reads","Average Percent Coverage",
-            "Average Length Coverage (bp)","Reference Length","Average MAPQ (Completely Mapped Reads)",
-            "Resistomes & Variants: Observed Pathogen(s)","AMR Gene Family","Drug Class","Resistance Mechanism"]
-    
-    df=pd.read_table(infile)
-    df_red=df[to_keep]
-    df_red=df_red.set_index("ARO Accession")
-    df_red=df_red.sort_values(["Average Percent Coverage","All Mapped Reads"],ascending=False)
-    df_red = df_red[df_red['Average Percent Coverage'] > min_coverage]
+    cols=["ARO Term","Average Percent Coverage","All Mapped Reads","Drug Class","Resistance Mechanism","AMR Gene Family"]
 
-    df_red.to_csv(outfile)
+    reads_df=pd.read_table(infile, index_col='ARO Accession')
+    reads_df_red=reads_df[cols]
+    reads_df_red.rename({"Average Percent Coverage":'%coverage'},axis=1,inplace=True)
+
+    reads_df_filt = reads_df_red[reads_df_red['%coverage'] > min_coverage]
+    reads_df_filt=reads_df_filt.sort_values(["%coverage","All Mapped Reads"],ascending=False)
+    
+    reads_df_filt.to_csv(outfile)
 
 
 elif in_case == "assembly":
     infile=snakemake.input.txt
     json_f = snakemake.input.json
     outfile=snakemake.output.csv
-    
-    asbl_df = do_card_main_postprocessing(infile,json_f, min_coverage)
-    asbl_df.to_csv(outfile)
+
+    cols=["Contig","Best_Hit_ARO","Best_Identities","Drug Class","Antibiotic","Resistance Mechanism","AMR Gene Family","ARO","ID"]
+
+    asbl_df=pd.read_table(infile, index_col="ORF_ID")
+    asbl_df_red=asbl_df[cols]
+    asbl_df_red.loc[:,'Contig'] = asbl_df_red['Contig'].map(lambda x: x.rsplit('_', 1)[0])
+
+    asbl_df_filt = filter_RGI_main(asbl_df_red,json_f)
+    asbl_df_filt.to_csv(outfile)
 
 
 '''
