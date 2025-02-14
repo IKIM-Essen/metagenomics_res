@@ -38,13 +38,13 @@ rule bin_summary_sample:
         checkm="results/{project}/output/report/{sample}/checkm2_quality_report.tsv",
         gtdb="results/{project}/output/classification/bins/{sample}/{sample}.summary.tsv",
     output:
-        csv_bins="results/{project}/output/report/{sample}/{sample}_bin_summary.csv",
+        csv_bins="results/{project}/output/report/{sample}/{sample}_bin_quality.csv",
         csv_tax="results/{project}/output/report/{sample}/{sample}_bin_taxonomy.csv",
     params:
         max_cont=config["MAG-criteria"]["max-contamination"],
         min_comp=config["MAG-criteria"]["min-completeness"],
     log:
-        "logs/{project}/bin_summary/{sample}.log",
+        "logs/{project}/bin_quality/{sample}.log",
     threads: 4
     conda:
         "../envs/python.yaml"
@@ -54,21 +54,21 @@ rule bin_summary_sample:
 
 use rule qc_summary_report as bin_sample_report with:
     input:
-        "results/{project}/output/report/{sample}/{sample}_bin_summary.csv",
+        "results/{project}/output/report/{sample}/{sample}_bin_quality.csv",
     output:
         report(
             directory("results/{project}/output/report/{sample}/bin/"),
             htmlindex="index.html",
-            category="4. Binning results",
-            subcategory="4.1 Summary",
+            category="4. Binning",
+            subcategory="4.2 Quality of bins",
             labels={"sample": "{sample}"},
         ),
     params:
         pin_until="bin",
         styles="resources/report/tables/",
-        name="{sample}_bin_summary",
-        header="Bin summary for sample {sample}",
-        pattern=config["tablular-config"],
+        name="{sample}_bin_quality",
+        header="Quality table of all bins for sample {sample}",
+        pattern=config["tabular-config"],
     log:
         "logs/{project}/report/{sample}/bin_rbt_csv.log",
 
@@ -80,16 +80,16 @@ use rule qc_summary_report as taxonomy_report with:
         report(
             directory("results/{project}/output/report/{sample}/taxonomy/"),
             htmlindex="index.html",
-            category="4. Binning results",
-            subcategory="4.3 Taxonomy classification",
+            category="4. Binning",
+            subcategory="4.3 Taxonomic classification",
             labels={"sample": "{sample}"},
         ),
     params:
         pin_until="bin",
         styles="resources/report/tables/",
-        name="{sample}_taxonomy_summary",
+        name="{sample}_bin_taxonomy",
         header="Taxonomy summary for sample {sample}",
-        pattern=config["tablular-config"],
+        pattern=config["tabular-config"],
     log:
         "logs/{project}/report/{sample}/taxonomy_rbt_csv.log",
 
@@ -97,13 +97,13 @@ use rule qc_summary_report as taxonomy_report with:
 rule bin_summary_all:
     input:
         csv_bins=expand(
-            "results/{{project}}/output/report/{sample}/{sample}_bin_summary.csv",
+            "results/{{project}}/output/report/{sample}/{sample}_bin_quality.csv",
             sample=get_samples(),
         ),
     output:
-        "results/{project}/output/report/all/binning_summary_all.csv",
+        "results/{project}/output/report/all_samples/binning_quality.csv",
     log:
-        "logs/{project}/bin_summary/all.log",
+        "logs/{project}/bin_quality/all.log",
     threads: 4
     conda:
         "../envs/python.yaml"
@@ -113,20 +113,20 @@ rule bin_summary_all:
 
 use rule qc_summary_report as bin_all_report with:
     input:
-        "results/{project}/output/report/all/binning_summary_all.csv",
+        "results/{project}/output/report/all_samples/binning_quality.csv",
     output:
         report(
-            directory("results/{project}/output/report/all/binning/"),
+            directory("results/{project}/output/report/all_samples/binning_QC/"),
             htmlindex="index.html",
-            category="4. Binning results",
-            subcategory="4.1 Summary",
-            labels={"sample": "all"},
+            category="4. Binning",
+            subcategory="4.1 Binning overview",
+            labels={" ": "Summary table"},
         ),
     params:
         pin_until="sample",
         styles="resources/report/tables/",
-        name="bin_summary",
-        header="Bin summary for all samples",
-        pattern=config["tablular-config"],
+        name="binning_quality",
+        header="Bin quality summary for all samples",
+        pattern=config["tabular-config"],
     log:
         "logs/{project}/report/all_bin_rbt_csv.log",

@@ -4,7 +4,7 @@ pepfile: config/pep/config.yaml
 ## All results can be found under results/project-name/
 project-name: "test"
 #
-run-date: "2025-01-06"
+run-date: "2025-02-14"
 
 data-handling:
   # path to store data within the workflow
@@ -72,7 +72,7 @@ card:
   url: https://card.mcmaster.ca/latest/data
 
 ## string term used for formatting output tables
-tablular-config: '/>github<\/a>/a \\t\t\t</li>\n\t\t\t<li class="nav-item"> \n\t\t\t\t<a class="nav-link" href="#">'
+tabular-config: '/>github<\/a>/a \\t\t\t</li>\n\t\t\t<li class="nav-item"> \n\t\t\t\t<a class="nav-link" href="#">'
 
 # If testing set true
 testing: False

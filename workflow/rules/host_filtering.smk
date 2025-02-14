@@ -157,6 +157,27 @@ if config["host-filtering"]["do-host-filtering"]:
             "pigz -c > {output.filtered[1]}) > {log} 2>&1"
 
 
+rule create_host_contamination_plot:
+    input:
+        csv=rules.qc_summary.output.csv,
+    output:
+        html=report(
+            "results/{project}/output/report/all_samples/host_contamination.html",
+            caption="../report/host_plot.rst",
+            category="1. Quality of reads",
+            labels={" ": "Host contamination plot"},
+        ),
+    params:
+        other_host=config["host-filtering"]["do-host-filtering"],
+        hostname=config["host-filtering"]["host-name"],
+    log:
+        "logs/{project}/report/host_contamination_plot.log",
+    conda:
+        "../envs/python.yaml"
+    script:
+        "../scripts/plot_host_contamination.py"
+
+
 ## TODO
 ## change to using kaiju output or just to present human contamination
 ## all reports are done on human (+ optional other different host) filtered
@@ -176,7 +197,7 @@ if config["host-filtering"]["do-host-filtering"]:
         ),
         host_logs=get_host_map_statistics,
     output:
-        csv="results/{project}/output/report/all/diversity_summary.csv",
+        csv="results/{project}/output/report/all_samples/diversity_summary.csv",
     log:
         "logs/{project}/kraken2/summary.log",
     params:
@@ -194,7 +215,7 @@ use rule qc_summary_report as diversity_summary_report with:
         rules.diversity_summary.output.csv,
     output:
         report(
-            directory("results/{project}/output/report/all/diversity_summary/"),
+            directory("results/{project}/output/report/all_samples/diversity_summary/"),
             htmlindex="index.html",
             caption="../report/kraken.rst",
             category="2. Species diversity",
@@ -207,28 +228,7 @@ use rule qc_summary_report as diversity_summary_report with:
         styles="resources/report/tables/",
         name="diversity_summary",
         header="Diversity summary based on mapping to host genome(s) and Kraken2",
-        pattern=config["tablular-config"],
+        pattern=config["tabular-config"],
     log:
         "logs/{project}/report/kraken2_rbt_csv.log",
-
-
-rule create_host_plot:
-    input:
-        csv=rules.diversity_summary.output.csv,
-    output:
-        html=report(
-            "results/{project}/output/report/all/host_contamination.html",
-            caption="../report/host_plot.rst",
-            category="2. Species diversity",
-            labels={"sample": "all samples"},
-        ),
-    params:
-        other_host=config["host-filtering"]["do-host-filtering"],
-        hostname=config["host-filtering"]["host-name"],
-    log:
-        "logs/{project}/report/host_plot.log",
-    conda:
-        "../envs/python.yaml"
-    script:
-        "../scripts/plot_host.py"
 """

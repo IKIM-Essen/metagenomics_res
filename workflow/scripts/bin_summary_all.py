@@ -15,7 +15,7 @@ for bin_file in csv_bins:
     bin_df=pd.read_csv(bin_file)
 
     summary_sample_dict['#bins'] = len(bin_df)
-    summary_sample_dict['# MAGs'] = len(bin_df[bin_df['is_MAG']=='MAG'])
+    summary_sample_dict['#MAGs'] = len(bin_df[bin_df['is_MAG']=='MAG'])
 
     summary_dict[sample]=summary_sample_dict
 

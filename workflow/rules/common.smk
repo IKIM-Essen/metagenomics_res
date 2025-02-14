@@ -12,6 +12,10 @@ def get_resource_path():
     return config["data-handling"]["resources"]
 
 
+def get_rundate():
+    return config["run-date"]
+
+
 def get_project():
     return config["project-name"]
 
@@ -147,9 +151,8 @@ def get_all_contig2bin_files(wildcards):
 ## reads in binner control file and returns list with paths to contig2bin files
 ## and a list with name of the binners that produced results
 def get_paths_binner(wildcards):
-    file = "results/{}/binning/das_tool/binner_control_{}.csv".format(
-        wildcards.project, wildcards.sample
-    )
+    file = "results/{0}/binning/das_tool/binner_control_{1}.csv".format(
+        wildcards.project, wildcards.sample)
     lines = open(file).readlines()
     paths = str(lines[0].rstrip("\n"))
     binner = str(lines[1].rstrip("\n"))

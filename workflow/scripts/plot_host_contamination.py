@@ -31,11 +31,11 @@ if other_host:
 
 
 slider = alt.binding_range(
-    min=0, max=100, step=0.5, name="maximum acceptable:"
+    min=0, max=100, step=0.5, name="maximal accepted host contamination:"
 )
 # selector = alt.param(name='SelectorName', value=50, bind=slider)
 selector = alt.selection_point(
-    name="SelectorName", fields=["max_contamination"], bind=slider, value=50
+    name="SelectorName", fields=["max_contamination"], bind=slider, value=10
 )
 
 # plot for human percentage

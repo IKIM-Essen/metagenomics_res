@@ -126,7 +126,7 @@ if bins_for_sample:
     rule move_MAGs:
         input:
             bin_dir=rules.gzip_bins.output.bins,
-            csv="results/{project}/output/report/{sample}/{sample}_mags_summary.csv",
+            csv="results/{project}/output/report/{sample}/{sample}_bin_quality.csv",
         output:
             outdir=directory("results/{project}/output/fastas/{sample}/mags/"),
         threads: 20

@@ -11,8 +11,8 @@ if snakemake.params.other_host:
     hostname=snakemake.params.hostname
     host_logs = snakemake.input.host_logs
 
-outfile = snakemake.output.csv #"/local/work/josefa/ResMAG/results/lanuv/output/report/all/seq_summary.csv"
-outfile_vis = snakemake.output.vis_csv #"/local/work/josefa/ResMAG/results/lanuv/output/report/all/seq_summary_vis.csv"
+outfile = snakemake.output.csv 
+outfile_vis = snakemake.output.vis_csv 
 
 results_dict = {}
 

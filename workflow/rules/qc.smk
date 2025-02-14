@@ -22,12 +22,12 @@ rule multiqc:
         ),
     output:
         report(
-            "results/{project}/output/report/all/multiqc.html",
+            "results/{project}/output/report/all_samples/multiqc.html",
             htmlindex="multiqc.html",
-            category="1. Quality control",
-            labels={"sample": "all samples"},
+            category="1. Quality of reads",
+            labels={" ": "MultiQC report"},
         ),
-        "results/{project}/output/report/all/multiqc_data.zip",
+        "results/{project}/output/report/all_samples/multiqc_data.zip",
     params:
         extra=(
             "--zip-data-dir "
@@ -54,8 +54,8 @@ rule qc_summary:
         ),
         host_logs=get_host_map_statistics,
     output:
-        csv="results/{project}/output/report/all/quality_summary.csv",
-        vis_csv=temp("results/{project}/output/report/all/quality_summary_visual.csv"),
+        csv="results/{project}/output/report/all_samples/read_QC.csv",
+        vis_csv=temp("results/{project}/output/report/all_samples/read_QC_visual.csv"),
     params:
         other_host=config["host-filtering"]["do-host-filtering"],
         hostname=config["host-filtering"]["host-name"],
@@ -64,7 +64,7 @@ rule qc_summary:
     conda:
         "../envs/python.yaml"
     script:
-        "../scripts/quality_summary.py"
+        "../scripts/read_quality.py"
 
 
 rule qc_summary_report:
@@ -72,21 +72,19 @@ rule qc_summary_report:
         rules.qc_summary.output.vis_csv,
     output:
         report(
-            directory("results/{project}/output/report/all/quality_summary/"),
+            directory("results/{project}/output/report/all_samples/read_QC/"),
             htmlindex="index.html",
-            category="1. Quality control",
-            labels={
-                "sample": "all samples",
-            },
+            category="1. Quality of reads",
+            labels={" ": "Summary table"},
         ),
     params:
         pin_until="sample",
         styles="resources/report/tables/",
-        name="quality_summary",
-        header="Quality summary based on fastp report and mapping to host genome(s)",
-        pattern=config["tablular-config"],
+        name="read_QC",
+        header="Quality summary of reads based on fastp report and mapping to host genome(s)",
+        pattern=config["tabular-config"],
     log:
-        "logs/{project}/report/qc_summary_rbt_csv.log",
+        "logs/{project}/report/read_qc_rbt_csv.log",
     conda:
         "../envs/rbt.yaml"
     shell:

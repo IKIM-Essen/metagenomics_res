@@ -63,7 +63,7 @@ rule reads_mapped_assembly:
         bam=rules.map_to_assembly.output.bam,
         bai=rules.index_assembly_alignment.output.bai,
     output:
-        bai="results/{project}/report_prerequisites/assembly/{sample}_reads_mapped.txt",
+        txt="results/{project}/report_prerequisites/assembly/{sample}_reads_mapped.txt",
     threads: 20
     log:
         "logs/{project}/assembly/{sample}_mapping_reads.log",
@@ -71,7 +71,7 @@ rule reads_mapped_assembly:
         "../envs/minimap2.yaml"
     shell:
         "samtools view -c -F 4 --threads {threads} "
-        "-o {output.bai} {input.bam} > {log} 2>&1"
+        "-o {output.txt} {input.bam} > {log} 2>&1"
 
 
 rule gzip_assembly:
@@ -100,8 +100,8 @@ rule assembly_summary:
             sample=get_samples(),
         ),
     output:
-        csv="results/{project}/output/report/all/assembly_summary.csv",
-        vis_csv=temp("results/{project}/output/report/all/assembly_summary_visual.csv"),
+        csv="results/{project}/output/report/all_samples/assembly_quality.csv",
+        vis_csv=temp("results/{project}/output/report/all_samples/assembly_quality_visual.csv"),
     log:
         "logs/{project}/report/assembly_summary.log",
     conda:
@@ -115,19 +115,19 @@ use rule qc_summary_report as assembly_report with:
         rules.assembly_summary.output.vis_csv,
     output:
         report(
-            directory("results/{project}/output/report/all/assembly/"),
+            directory("results/{project}/output/report/all_samples/assembly_QCy/"),
             htmlindex="index.html",
-            category="3. Assembly results",
+            category="3. Quality of assembly",
             labels={
-                "sample": "all samples",
+                " ": "Summary table",
             },
         ),
     params:
         pin_until="sample",
         styles="resources/report/tables/",
-        name="assembly_summary",
+        name="assembly_quality",
         header="Assembly summary",
-        pattern=config["tablular-config"],
+        pattern=config["tabular-config"],
     log:
         "logs/{project}/report/assembly_rbt_csv.log",
 
@@ -139,7 +139,7 @@ rule cleanup_megahit_output:
         asmbl_folder=rules.megahit.output.outdir,
         #dependent results
         gz_asmbl=rules.gzip_assembly.output,
-        asmbl_summary=rules.assembly_summary.output.csv,
+        mapped_reads=rules.reads_mapped_assembly.output.txt,
         binning_done="results/{project}/binning/das_tool/{sample}_run.done",
     output:
         touch("results/{project}/megahit/{sample}_cleanup.done"),

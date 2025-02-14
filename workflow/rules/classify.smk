@@ -1,3 +1,4 @@
+### read classification ###
 rule download_kaiju:
     output:
         db_files=get_kaiju_files(),
@@ -60,10 +61,9 @@ rule kaiju2krona:
             "results/{project}/output/classification/reads/{sample}/kaiju.out.krona"
         ),
         html=report(
-            "results/{project}/output/report/{sample}/{sample}_kaiju.out.html",
+            "results/{project}/output/report/{sample}/{sample}_read_taxonomy_krona.html",
             htmlindex="index.html",
-            category="5. Taxonomic classification",
-            subcategory="5.2 Read classification",
+            category="2. Read-based taxonomic classification",
             labels={"sample": "{sample}"},
         ),
     log:
@@ -75,6 +75,9 @@ rule kaiju2krona:
         "-i {input.report} -o {output.krona} && "
         "ktImportText -o {output.html} {output.krona}) > {log} 2>&1"
 
+
+
+### bin classification ###
 
 if config["gtdb"]["use-local"]:
 

@@ -76,7 +76,9 @@ rule all:
         ),
         # overall report
         expand(
-            "results/{project}/output/report/report_{project}.zip",
+            "results/{{project}}/output/report/{rundate}_snakemake_report_{{project}}.zip"
+            .format(
+                rundate=get_rundate()),
             project=get_project(),
         ),
         expand(
@@ -99,12 +101,3 @@ rule all:
             project=get_project(),
             sample=get_samples(),
         ),
-
-
-"""        
-        expand(
-            "results/{project}/output/ARGs/mags/{sample}/all_mags.done",
-            project=get_project(),
-            sample=get_samples(),
-        ),
-"""
