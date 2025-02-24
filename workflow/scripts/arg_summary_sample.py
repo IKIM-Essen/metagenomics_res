@@ -58,6 +58,8 @@ if in_case == "reads":
     cols=["ARO Term","Average Percent Coverage","All Mapped Reads","Drug Class","Resistance Mechanism","AMR Gene Family"]
 
     reads_df=pd.read_table(infile, index_col='ARO Accession')
+    reads_df['Drug Class'] = reads_df['Drug Class'].apply(lambda x: x.replace(' antibiotic','') if x.find(' antibiotic') >= 0 else x)
+
     reads_df_red=reads_df[cols]
     reads_df_red.rename({"Average Percent Coverage":'%coverage'},axis=1,inplace=True)
 
@@ -75,6 +77,8 @@ elif in_case == "assembly":
     cols=["Contig","Best_Hit_ARO","Best_Identities","Drug Class","Antibiotic","Resistance Mechanism","AMR Gene Family","ARO","ID"]
 
     asbl_df=pd.read_table(infile, index_col="ORF_ID")
+    asbl_df['Drug Class'] = asbl_df['Drug Class'].apply(lambda x: x.replace(' antibiotic','') if x.find(' antibiotic') >= 0 else x)
+    
     asbl_df_red=asbl_df[cols]
     asbl_df_red.loc[:,'Contig'] = asbl_df_red['Contig'].map(lambda x: x.rsplit('_', 1)[0])
 
