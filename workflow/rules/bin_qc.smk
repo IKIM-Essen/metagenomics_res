@@ -178,7 +178,7 @@ rule bin_summary_all:
             sample=get_samples(),
         ),
     output:
-        "results/{project}/output/report/all/binning_summary_all.csv",
+        "results/{project}/output/report/all/binning_summary.csv",
     log:
         "logs/{project}/bin_summary/all.log",
     threads: 4
@@ -190,7 +190,7 @@ rule bin_summary_all:
 
 use rule qc_summary_report as bin_all_report with:
     input:
-        "results/{project}/output/report/all/binning_summary_all.csv",
+        "results/{project}/output/report/all/binning_summary.csv",
     output:
         report(
             directory("results/{project}/output/report/all/binning/"),

@@ -46,6 +46,7 @@ rm_list=["Translation_Table_Used", "Additional_Notes"]
 checkm_df.drop(rm_list, axis=1, inplace=True)
 checkm_df.columns=checkm_df.columns.str.lower()
 checkm_df.rename({"name":"bin", "gc_content":"GC_content","contig_n50":"contig_N50"},axis=1,inplace=True)
+checkm_df['bin'] = checkm_df['bin'].str.replace('.fa', '', 1, case=True)
 checkm_df.set_index("bin",inplace=True)
 col_order=["completeness","contamination","genome_size","GC_content","contig_N50",
            "total_coding_sequences","coding_density","average_gene_length","completeness_model_used"]
