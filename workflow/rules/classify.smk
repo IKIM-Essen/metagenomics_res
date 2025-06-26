@@ -114,7 +114,7 @@ if config["gtdb"]["use-local"]:
             "../envs/gtdbtk.yaml"
         shell:
             "(gtdbtk classify_wf --prefix {wildcards.sample} -x fa.gz "
-            "--mash_db {params.db_folder}mash_db/ --cpus {threads} "
+            "--mash_db {params.db_folder}mash_db/ --cpus 40 "
             "--genome_dir {input.bins}/ --out_dir {output.outdir}/ && "
             "cp {output.outdir}/{params.json} {params.clf_outdir}/) > {log} 2>&1"
 

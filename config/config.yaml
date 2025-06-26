@@ -4,7 +4,7 @@ pepfile: config/pep/config.yaml
 ## All results can be found under results/project-name/
 project-name: "test"
 #
-run-date: "2025-01-06"
+run-date: "2025-06-26"
 
 data-handling:
   # path to store data within the workflow
@@ -24,7 +24,7 @@ adapter-seqs: "-a CTGTCTCTTATACACATCT -g AGATGTGTATAAGAGACAG"
 human-filtering:
   # if you have a human reference genome on your device,
   # you can set use-local to True and specify the path to the human reference genome
-  use-local: True
+  use-local: False
   # path to a locally stored human reference genome
   local-path: /groups/ds/databases_refGenomes/refGenomes/latest/human/GCA_000001405.29_GRCh38.p14_genomic.fna.gz
   # if use-local = False the reference genome is downloaded via the following url
@@ -35,9 +35,9 @@ human-filtering:
 host-filtering:
   do-host-filtering: False
   #e.g.: pig
-  host-name: 
+  host-name:
   #e.g.: resources/ref_genome/GCF_000003025.6_Sscrofa11.1_genomic.fa.gz
-  ref-genome: 
+  ref-genome:
 
 # minimum contig length used during assembly step
 min-contig-length: 300
@@ -45,7 +45,7 @@ min-contig-length: 300
 das-tool:
   # cores to use for das_tool
   threads: 64
-  binner-list: ["metabat","metacoag"]
+  binner-list: ["metabat", "metacoag"]
 
 MAG-criteria:
   min-completeness: 50.00
@@ -64,10 +64,10 @@ gtdb:
   use-local: True
   # if use-local is set to True, please specify the folder where the decompressed database is stored
   # this path is expected to lay under the data-handling resources folder
-  db-folder: gtdb/release220/
+  db-folder: gtdb/release226/
 
 card:
-  version: v3.3.0
+  version: v4.0.0
   dbfile: card.json
   url: https://card.mcmaster.ca/latest/data
 

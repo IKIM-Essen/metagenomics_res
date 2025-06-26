@@ -164,7 +164,9 @@ def bins_for_sample(wildcards):
 
 
 def get_mag_fa(wildcards):
-    folder = "results/{project}/output/fastas/{sample}/mags/"
+    folder = "results/{}/output/fastas/{}/mags/".format(
+        wildcards.project, wildcards.sample
+    )
     files = [
         os.path.join(folder, binID)
         for binID in os.listdir(folder)
@@ -174,7 +176,9 @@ def get_mag_fa(wildcards):
 
 
 def get_binIDs_for_sample(wildcards):
-    folder = "results/{project}/output/fastas/{sample}/mags/"
+    folder = "results/{}/output/fastas/{}/mags/".format(
+        wildcards.project, wildcards.sample
+    )
     binIDs = [binID for binID in os.listdir(folder) if binID.endswith("fa.gz")]
     return binIDs
 
@@ -183,7 +187,9 @@ def get_mag_ARGs(wildcards):
     bin_fastas = (get_mag_fa(wildcards),)
     bin_fastas = list(bin_fastas)[0]
     binIDs = [os.path.basename(binID) for binID in bin_fastas]
-    folder = "results/{project}/output/ARGs/mags/{sample}/"
+    folder = "results/{}/output/ARGs/mags/{}/".format(
+        wildcards.project, wildcards.sample
+    )
     arg_files = [
         os.path.join(folder, binID.replace(".fa.gz", ".txt")) for binID in binIDs
     ]
