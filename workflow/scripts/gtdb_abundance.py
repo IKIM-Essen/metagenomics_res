@@ -8,7 +8,7 @@ only_db_prep = snakemake.params.db_prep
 if only_db_prep:
     print("Preparing of ete4 GTDB database..")
     gtdb = GTDBTaxa()
-    gtdb.update_taxonomy_database()
+    # gtdb.update_taxonomy_database()
     print("done")
 
 else:

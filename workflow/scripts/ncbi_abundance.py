@@ -8,7 +8,7 @@ only_db_prep = snakemake.params.db_prep
 if only_db_prep:
     print("Preparing of ete4 NCBI database..")
     ncbi = NCBITaxa()
-    ncbi.update_taxonomy_database()
+    # ncbi.update_taxonomy_database()
     print("done")
 
 else:
