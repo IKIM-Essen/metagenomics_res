@@ -23,7 +23,7 @@ rule CARD_load_DB_for_reads:
     input:
         get_card_db_file(),
     output:
-        temp(touch("results/CARD_load_DB_for_reads.done")),
+        touch("results/CARD_load_DB_for_reads.done"),
     log:
         "logs/CARD_load_DB_for_reads.log",
     conda:
