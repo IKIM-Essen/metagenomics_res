@@ -1,11 +1,11 @@
 import pandas as pd
 import sys
-import os
+import json
 
 sys.stderr = open(snakemake.log[0], "w")
 
 asbl_log = snakemake.input.asbl
-txt = snakemake.input.mapped
+flagstat_json = snakemake.input.mapped
 qc_csv = snakemake.input.qc_csv
 mag_file = snakemake.input.csv_mags
 bin_file = snakemake.input.csv_bins
@@ -43,12 +43,14 @@ with open(asbl_log, "r") as a_log:
 
                 summary_sample_dict[colname] = value
 
-with open(txt) as t:
-    mapped = int(t.readline())
-    summary_sample_dict["#assembled_reads"] = mapped
-    summary_sample_dict["%assembled_reads"] = round(
-        ((mapped / summary_sample_dict["#reads_after_filtering"]) * 100), 2
-    )
+with open(flagstat_json) as f:
+    stats = json.load(f)
+
+mapped = stats["QC-passed reads"]["primary mapped"]
+summary_sample_dict["#assembled_reads"] = mapped
+
+perc_mapped = stats["QC-passed reads"]["primary mapped %"]
+summary_sample_dict["%assembled_reads"] = perc_mapped
 
 if bin_file.rfind(sample) >= 0:
 

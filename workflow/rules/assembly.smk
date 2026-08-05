@@ -41,7 +41,8 @@ rule map_to_assembly:
     conda:
         "../envs/minimap2.yaml"
     shell:
-        "(minimap2 -a -xsr -t {threads} {input.contigs} {input.fastqs} | "
+        "(minimap2 -a -xsr --secondary=no -t {threads} "
+        "{input.contigs} {input.fastqs} | "
         "samtools view -bh | "
         "samtools sort --threads {threads} -o {output.bam}) > {log} 2>&1"
 
@@ -67,15 +68,15 @@ rule reads_mapped_assembly:
         bam=rules.map_to_assembly.output.bam,
         bai=rules.index_assembly_alignment.output.bai,
     output:
-        txt="results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.txt",
-    threads: 16
+        json="results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.json",
+    threads: 1
     log:
         "logs/{project}/assembly/{sample}_mapping_reads.log",
     conda:
         "../envs/minimap2.yaml"
     shell:
-        "samtools view -c -F 4 --threads {threads} "
-        "-o {output.txt} {input.bam} > {log} 2>&1"
+        "samtools flagstat -O json "
+        "{input.bam} > {output.json} 2> {log}"
 
 
 rule gzip_assembly:
@@ -99,7 +100,7 @@ rule assembly_summary:
     input:
         qc_csv=rules.qc_summary.output.csv,
         asbl="results/{project}/output/report/prerequisites/assembly/{sample}_megahit.log",
-        mapped="results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.txt",
+        mapped="results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.json",
         csv_bins="results/{project}/output/report/{sample}/{sample}_summary_bins.csv",
         csv_mags="results/{project}/output/report/{sample}/{sample}_summary_mags.csv",
     output:
