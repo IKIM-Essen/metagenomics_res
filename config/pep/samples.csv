@@ -1,3 +1,3 @@
-sample_name,fq1,fq2
-sample1,/path/to/sample1_R1.fastq.gz,/path/to/sample1_R2.fastq.gz
-sample2,/path/to/sample2_R1.fastq.gz,/path/to/sample2_R2.fastq.gz
+sample_name,fq1,fq2,sample_role,case_id,material_stage,matched_control,expected_taxon
+sample1,/path/to/sample1_R1.fastq.gz,/path/to/sample1_R2.fastq.gz,raw_specimen,case-1,raw_specimen,blank1,
+blank1,/path/to/blank1_R1.fastq.gz,/path/to/blank1_R2.fastq.gz,negative_control,batch-1,control,,

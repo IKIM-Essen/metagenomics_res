@@ -74,6 +74,51 @@ uniCARD:
   # path to CARDs hierarchy file
   hierarchy-json: /groups/ds/databases_refGenomes/databases/latest/uniCARD/CARD_hierarchy_v4.0.0.json
 
+# Optional evidence-preserving profile for culture-free AMR research. Outputs are
+# candidate sequence evidence, not resistance or susceptibility calls.
+culture-free-evidence:
+  enabled: True
+  # RGI-BWT is retained for backwards compatibility but disabled in this profile.
+  run-rgi-bwt: False
+  direct-unicard:
+    enabled: True
+    sensitivity: sensitive
+    evalue: 0.001
+    max-target-seqs: 25
+    # Record the exact UniCARD builder revision and UniRef release used to build db-file.
+    builder-commit: "REPLACE_WITH_UNICARD_COMMIT"
+    uniref-release: "REPLACE_WITH_UNIREF_RELEASE"
+  # Preserve the graph and coordinate-sorted alignment, and export quantitative
+  # depth, allele, insert/orientation, and paired-contig-link evidence.
+  assembly-evidence:
+    enabled: True
+    minimum-mapping-quality: 20
+    minimum-base-quality: 20
+    maximum-pileup-depth: 100000
+  read-audit:
+    # Bottom-hash paired-sequence sketch for cross-sample identity investigation.
+    sketch-size: 128
+  control-aware:
+    # When enabled, PEP requires case/stage/role metadata and every raw specimen
+    # and plate sweep must name a negative-control sample.
+    enabled: False
+    require-matched-negative: True
+  # Optional broad-class secondary evidence. Pin a tested modern DeepARG runtime,
+  # model/database digest, and Apptainer/Docker image before enabling.
+  deeparg:
+    enabled: False
+    container: "docker://REPLACE_WITH_DEEPARG_IMAGE@sha256:REPLACE_WITH_DIGEST"
+    runtime-version: "REPLACE_WITH_DEEPARG_RUNTIME_VERSION"
+    model-release: "REPLACE_WITH_DEEPARG_MODEL_RELEASE"
+    data-path: "/REPLACE/WITH/PINNED/DEEPARG/DATA"
+    database-digest: "sha256:REPLACE_WITH_64_HEX_DIGEST"
+    device: cpu
+    min-probability: 0.8
+    alignment-identity: 50
+    alignment-evalue: 1e-10
+    alignment-overlap: 0.8
+    max-alignments-per-entry: 1000
+
 ## string term used for formatting output tables
 tablular-config: '/>github<\/a>/a \\t\t\t</li>\n\t\t\t<li class="nav-item"> \n\t\t\t\t<a class="nav-link" href="#">'
 

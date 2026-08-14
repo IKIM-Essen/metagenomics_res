@@ -18,6 +18,11 @@ ResMAG is a state-of-the-art and user-friendly Snakemake workflow designed for t
 
 **Antibiotic Resistance Gene Identification**: Perform in-depth analysis to detect and characterize antibiotic resistance genes within the metagenomic data, providing valuable insights into antimicrobial resistance profiles.<br />
 
+**Culture-free evidence profile**: Optionally retain assembly/linkage evidence, run paired-mate direct
+DIAMOND--UniCARD searches before assembly, preserve full competitive hit fields, export typed ARO
+category accessions from pinned CARD data, and checksum-lock every AMR database artifact. These outputs
+are research evidence and are not resistance, susceptibility, or clinical calls.<br />
+
 **Performance Refinement**: Continuously optimize the pipeline by incorporating the latest advancements in metagenomics research, ensuring the highest accuracy and efficiency in metagenomic data analysis.<br />
 
 ---
@@ -79,6 +84,39 @@ sample_name,fq1,fq2
 sample1,path/to/your/fastq/sample1_R1.fastq.gz,path/to/your/fastq/sample1_R2.fastq.gz
 ```
 
+For culture-free AMR development, enable `culture-free-evidence` in `config/config.yaml`, replace the
+UniCARD builder/UniRef placeholders with the exact database provenance, and decide whether to retain the
+large assembly evidence. RGI-BWT is optional and disabled in the example profile. Direct
+DIAMOND--UniCARD evidence is emitted separately for R1 and R2 with 18 fields so mate identity and
+competing CARD wild-type/UniRef hits are not collapsed. Assembly proteins are searched again with a rich
+17-field contract for comparison; this output is separate from the legacy filtered summary. The CARD
+category export retains canonical `ARO:` identifiers; the legacy UniCARD hierarchy labels are
+display-only.
+
+The profile also exports the evidence that downstream strain and ARG-host inference otherwise loses:
+
+- stable FASTG and GFA assembly graphs;
+- coordinate-sorted read-to-contig BAM/BAI;
+- mapping/base-quality-filtered contig coverage and within-contig allele counts;
+- insert-size/alignment statistics plus one first-mate record per pair and aggregated contig links;
+- Prodigal protein/GFF context, DASTool contig-to-bin membership, bin QC/taxonomy, and geNomad
+  plasmid summaries in an optional second host-context lock, so the rapid evidence manifest does not
+  wait for the full binning/taxonomy path;
+- synchronized paired-FASTQ counts, full pair/name digests, and a compact sequence identity sketch;
+- a validated sample/control design and a checksum-addressed manifest for every sample.
+
+Set `control-aware.enabled: true` to require the PEP columns `sample_role`, `case_id`,
+`material_stage`, and `matched_control`. Raw specimens and plate sweeps must then name a sample whose
+role is `negative_control`. This validates the experimental relationship; contamination correction and
+clinical thresholds remain downstream, specimen-specific validation tasks.
+
+DeepARG-SS is an optional secondary arm. Before enabling it, provide a tested modern DeepARG container,
+runtime/model release, database path, and database digest. ResMAG retains `.mapping.ARG`,
+`.mapping.potential.ARG`, and the documented `.align.daa.tsv` alignment table without converting broad
+DeepARG classes into exact alleles or clinical calls. See the
+[official DeepARG project](https://github.com/gaarangoa/deeparg) for its current runtime and model
+distribution.
+
 
 ### Run the workflow
 Activate the conda environment:
@@ -95,6 +133,35 @@ using `$N` cores. It is recommended to use all available cores.
 ---
 
 ## Output
+
+When the culture-free evidence profile is enabled, the principal additional outputs are:
+
+```text
+results/<project>/output/
+├── evidence/
+│   ├── sample_design.tsv
+│   ├── sample_design.audit.json
+│   ├── reads/<sample>.paired_fastq.audit.json
+│   ├── assembly/<sample>_assembly_tree.{fastg,gfa}
+│   ├── assembly/<sample>_{reads_mapped.bam,reads_mapped.bam.bai}
+│   ├── assembly/<sample>.{contig_coverage,flagstat,samtools_stats,idxstats}.tsv
+│   ├── assembly/<sample>.allele_counts.tsv.gz
+│   ├── assembly/<sample>.paired_links.tsv.gz
+│   ├── assembly/<sample>.paired_link_summary.tsv
+│   ├── ownership/<sample>.host_context.json        # optional full host context
+│   └── manifests/<sample>.json
+├── contig2bins/<sample>/DASTool_contig2bin.tsv
+├── plasmids/<sample>/<sample>_plasmid_summary.tsv
+├── proteins/<sample>/<sample>_{proteins.faa,annotations.gff}.gz
+├── report/<sample>/<sample>_{bin_summary,bin_taxonomy}.csv
+└── resistance/
+    ├── uniCARD/direct/<sample>/<sample>.{R1,R2}.tsv.gz
+    ├── uniCARD/assembly_evidence/<sample>.tsv.gz
+    └── deeparg/direct/<sample>/...                 # optional
+```
+
+These are research evidence products. A hit is not a phenotype; an unlinked ARG must not be assigned to
+every organism; and no-hit evidence must not be interpreted as susceptibility.
 
 ---
 

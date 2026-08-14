@@ -5,11 +5,20 @@ rule megahit:
     input:
         fastqs=get_filtered_gz_fastqs,
     output:
-        contigs=temp("results/{project}/megahit/{sample}/final.contigs.fa"),
-        outdir=temp(directory("results/{project}/megahit/{sample}/")),
+        contigs=(
+            "results/{project}/megahit/{sample}/final.contigs.fa"
+            if retain_assembly_evidence()
+            else temp("results/{project}/megahit/{sample}/final.contigs.fa")
+        ),
+        outdir=(
+            directory("results/{project}/megahit/{sample}/")
+            if retain_assembly_evidence()
+            else temp(directory("results/{project}/megahit/{sample}/"))
+        ),
         log="results/{project}/output/report/prerequisites/assembly/{sample}_megahit.log",
     params:
         threshold=get_contig_length_threshold(),
+        keep_tmp="--keep-tmp-files" if retain_assembly_evidence() else "",
     threads: 64
     priority: 2
     resources:
@@ -21,7 +30,7 @@ rule megahit:
     shell:
         "(megahit -1 {input.fastqs[0]} -2 {input.fastqs[1]} "
         "--min-contig-len {params.threshold} -t {threads} "
-        "--out-dir {output.outdir} -f > {log} 2>&1) && "
+        "--out-dir {output.outdir} {params.keep_tmp} -f > {log} 2>&1) && "
         "cp {log} {output.log}"
 
 
@@ -30,8 +39,12 @@ rule map_to_assembly:
         contigs=get_assembly,
         fastqs=get_filtered_gz_fastqs,
     output:
-        bam=temp(
-            "results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.bam"
+        bam=(
+            "results/{project}/output/evidence/assembly/{sample}_reads_mapped.bam"
+            if retain_assembly_evidence()
+            else temp(
+                "results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.bam"
+            )
         ),
     threads: 60
     log:
@@ -48,8 +61,12 @@ rule index_assembly_alignment:
     input:
         rules.map_to_assembly.output.bam,
     output:
-        bai=temp(
-            "results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.bam.bai"
+        bai=(
+            "results/{project}/output/evidence/assembly/{sample}_reads_mapped.bam.bai"
+            if retain_assembly_evidence()
+            else temp(
+                "results/{project}/output/report/prerequisites/assembly/{sample}_reads_mapped.bam.bai"
+            )
         ),
     threads: 2
     log:
