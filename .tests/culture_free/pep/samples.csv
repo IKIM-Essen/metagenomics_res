@@ -1,0 +1,2 @@
+sample_name,fq1,fq2
+sample1,.tests/culture_free/reads/sample1_R1.fastq,.tests/culture_free/reads/sample1_R2.fastq

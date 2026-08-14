@@ -18,6 +18,11 @@ ResMAG is a state-of-the-art and user-friendly Snakemake workflow designed for t
 
 **Antibiotic Resistance Gene Identification**: Perform in-depth analysis to detect and characterize antibiotic resistance genes within the metagenomic data, providing valuable insights into antimicrobial resistance profiles.<br />
 
+**Culture-free evidence profile**: Optionally retain assembly/linkage evidence, run paired-mate direct
+DIAMOND--UniCARD searches before assembly, preserve full competitive hit fields, export typed ARO
+category accessions from pinned CARD data, and checksum-lock every AMR database artifact. These outputs
+are research evidence and are not resistance, susceptibility, or clinical calls.<br />
+
 **Performance Refinement**: Continuously optimize the pipeline by incorporating the latest advancements in metagenomics research, ensuring the highest accuracy and efficiency in metagenomic data analysis.<br />
 
 ---
@@ -78,6 +83,13 @@ git clone https://github.com/IKIM-Essen/metagenomics_res.git
 sample_name,fq1,fq2
 sample1,path/to/your/fastq/sample1_R1.fastq.gz,path/to/your/fastq/sample1_R2.fastq.gz
 ```
+
+For culture-free AMR development, enable `culture-free-evidence` in `config/config.yaml`, replace the
+UniCARD builder/UniRef placeholders with the exact database provenance, and decide whether to retain the
+large assembly intermediates and BAM/BAI files. RGI-BWT is optional and disabled in the example profile;
+direct DIAMOND--UniCARD evidence is emitted separately for R1 and R2 with 18 fields so mate identity and
+competing CARD wild-type/UniRef hits are not collapsed. The CARD category export retains canonical
+`ARO:` identifiers; the legacy UniCARD hierarchy labels are display-only.
 
 
 ### Run the workflow

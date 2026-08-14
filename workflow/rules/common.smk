@@ -172,6 +172,30 @@ def get_unicard_dmnd():
     return "".join([get_uniCARD_db_wo_ext(), ".dmnd"])
 
 
+def culture_free_config():
+    return config.get("culture-free-evidence", {})
+
+
+def culture_free_enabled():
+    return bool(culture_free_config().get("enabled", False))
+
+
+def direct_unicard_enabled():
+    return culture_free_enabled() and bool(
+        culture_free_config().get("direct-unicard", {}).get("enabled", False)
+    )
+
+
+def run_rgi_bwt():
+    return bool(culture_free_config().get("run-rgi-bwt", True))
+
+
+def retain_assembly_evidence():
+    return culture_free_enabled() and bool(
+        culture_free_config().get("retain-assembly-evidence", False)
+    )
+
+
 """
 
 def get_mag_fa(wildcards):

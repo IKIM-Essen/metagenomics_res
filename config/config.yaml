@@ -74,6 +74,24 @@ uniCARD:
   # path to CARDs hierarchy file
   hierarchy-json: /groups/ds/databases_refGenomes/databases/latest/uniCARD/CARD_hierarchy_v4.0.0.json
 
+# Optional evidence-preserving profile for culture-free AMR research. Outputs are
+# candidate sequence evidence, not resistance or susceptibility calls.
+culture-free-evidence:
+  enabled: True
+  # RGI-BWT is retained for backwards compatibility but disabled in this profile.
+  run-rgi-bwt: False
+  direct-unicard:
+    enabled: True
+    sensitivity: sensitive
+    evalue: 0.001
+    max-target-seqs: 25
+    # Record the exact UniCARD builder revision and UniRef release used to build db-file.
+    builder-commit: "REPLACE_WITH_UNICARD_COMMIT"
+    uniref-release: "REPLACE_WITH_UNIREF_RELEASE"
+  # Keep assembly graphs/intermediates and read-to-assembly BAM/BAI for later
+  # strain, plasmid, ARG-host, and local-assembly evidence.
+  retain-assembly-evidence: True
+
 ## string term used for formatting output tables
 tablular-config: '/>github<\/a>/a \\t\t\t</li>\n\t\t\t<li class="nav-item"> \n\t\t\t\t<a class="nav-link" href="#">'
 

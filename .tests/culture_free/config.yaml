@@ -1,0 +1,50 @@
+pepfile: .tests/culture_free/pep/config.yaml
+project-name: testing
+quality-criteria:
+  min-length-reads: 30
+  min-PHRED: 20
+adapter-seqs: "-a CTGTCTCTTATACACATCT -g AGATGTGTATAAGAGACAG"
+human-filtering:
+  use-shared: true
+  local-path: .tests/culture_free/resources/human.fasta
+  download-path: https://example.invalid/human.fasta
+host-filtering:
+  do-host-filtering: false
+  host-name:
+  ref-genome:
+min-contig-length: 300
+MAG-criteria:
+  min-completeness: 50.0
+  max-contamination: 30.0
+gtdb: .tests/culture_free/resources/gtdb/
+kaiju:
+  use-shared: true
+  fmi-file: .tests/culture_free/resources/kaiju.fmi
+  download: https://example.invalid/kaiju.tgz
+checkm2:
+  use-shared: true
+  db-folder: .tests/culture_free/resources/checkm2/
+genomad:
+  use-shared: true
+  db-folder: .tests/culture_free/resources/
+card:
+  use-shared: true
+  db-file: .tests/culture_free/resources/card.json
+  version: v4.0.0
+  url: https://card.mcmaster.ca/latest/data
+uniCARD:
+  db-file: .tests/culture_free/resources/uniCARD.fasta
+  hierarchy-json: .tests/culture_free/resources/CARD_hierarchy_v4.0.0.json
+culture-free-evidence:
+  enabled: true
+  run-rgi-bwt: false
+  direct-unicard:
+    enabled: true
+    sensitivity: sensitive
+    evalue: 0.001
+    max-target-seqs: 25
+    builder-commit: 0fd59150f3b241dc4cba58363c9a212170bd6471
+    uniref-release: "2025_03"
+  retain-assembly-evidence: true
+tablular-config: test
+testing: true

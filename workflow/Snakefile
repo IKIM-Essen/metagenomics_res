@@ -35,9 +35,35 @@ report_input = list()
 if config["host-filtering"]["do-host-filtering"]:
     report_input.append("results/{project}/output/report/host_filtering/")
 
+resistance_inputs = []
+if run_rgi_bwt():
+    resistance_inputs.extend(
+        expand(
+            "results/{project}/output/resistance/CARD/reads/{sample}/{sample}.gene_mapping_data.txt",
+            project=get_project(),
+            sample=get_samples(),
+        )
+    )
+if direct_unicard_enabled():
+    resistance_inputs.extend(
+        expand(
+            "results/{project}/output/resistance/uniCARD/direct/{sample}/{sample}.{mate}.tsv.gz",
+            project=get_project(),
+            sample=get_samples(),
+            mate=["R1", "R2"],
+        )
+    )
+    resistance_inputs.extend(
+        [
+            f"results/{get_project()}/output/resistance/uniCARD/card_aro_categories.tsv",
+            f"results/{get_project()}/output/resistance/uniCARD/evidence-lock.json",
+        ]
+    )
+
 rule all:
     input:
         report_input,
+        resistance_inputs,
         expand("results/{project}/output/report/all/multiqc_{project}.html",project=get_project()),
         # 2. Species diversity
         expand("results/{project}/output/report/all/quality_summary/",project=get_project()),
@@ -95,11 +121,6 @@ rule all:
             sample=get_samples(),
         ),
         # resistance analysis
-        expand(
-            "results/{project}/output/resistance/CARD/reads/{sample}/{sample}.gene_mapping_data.txt",
-            project=get_project(),
-            sample=get_samples(),
-        ),
         expand(
             "results/{project}/output/resistance/uniCARD/{project}_drug_class_abundance_all_possible.csv",
             project=get_project(),

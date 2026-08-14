@@ -71,6 +71,80 @@ rule CARD_read_run:
         "--clean -n {threads} > {log} 2>&1"
 
 
+if direct_unicard_enabled():
+
+    rule direct_uniCARD_reads:
+        input:
+            fastqs=get_filtered_gz_fastqs,
+            dmdb=get_unicard_dmnd(),
+        output:
+            r1="results/{project}/output/resistance/uniCARD/direct/{sample}/{sample}.R1.tsv.gz",
+            r2="results/{project}/output/resistance/uniCARD/direct/{sample}/{sample}.R2.tsv.gz",
+        log:
+            "logs/{project}/uniCARD/direct/{sample}.log",
+        conda:
+            "../envs/diamond.yaml"
+        threads: 60
+        resources:
+            heavy=1,
+        params:
+            db_wo_ext=lambda wildcards, input: os.path.splitext(input.dmdb)[0],
+            sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
+            evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
+            max_targets=config["culture-free-evidence"]["direct-unicard"]["max-target-seqs"],
+            outfmt=(
+                "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend "
+                "sstart send evalue bitscore qlen slen qcovhsp scovhsp qframe"
+            ),
+        shell:
+            "((diamond blastx -q {input.fastqs[0]} -d {params.db_wo_ext} "
+            "--{params.sensitivity} --evalue {params.evalue} "
+            "--max-target-seqs {params.max_targets} --outfmt {params.outfmt} "
+            "--threads {threads} | gzip -c > {output.r1}) && "
+            "(diamond blastx -q {input.fastqs[1]} -d {params.db_wo_ext} "
+            "--{params.sensitivity} --evalue {params.evalue} "
+            "--max-target-seqs {params.max_targets} --outfmt {params.outfmt} "
+            "--threads {threads} | gzip -c > {output.r2})) > {log} 2>&1"
+
+
+    rule export_CARD_ARO_categories:
+        input:
+            card_json=get_card_db_file(),
+        output:
+            tsv="results/{project}/output/resistance/uniCARD/card_aro_categories.tsv",
+        log:
+            "logs/{project}/uniCARD/card_aro_categories.log",
+        conda:
+            "../envs/python.yaml"
+        script:
+            "../scripts/export_card_aro_categories.py"
+
+
+    rule lock_culture_free_AMR_evidence:
+        input:
+            card_json=get_card_db_file(),
+            unicard_fasta=get_uniCARD_db(),
+            unicard_dmnd=get_unicard_dmnd(),
+            hierarchy=get_CARD_hierarchy(),
+            categories=rules.export_CARD_ARO_categories.output.tsv,
+        output:
+            json="results/{project}/output/resistance/uniCARD/evidence-lock.json",
+        params:
+            card_version=config["card"]["version"],
+            builder_commit=config["culture-free-evidence"]["direct-unicard"]["builder-commit"],
+            uniref_release=config["culture-free-evidence"]["direct-unicard"]["uniref-release"],
+            diamond_version="2.1.12",
+            sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
+            evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
+            max_target_seqs=config["culture-free-evidence"]["direct-unicard"]["max-target-seqs"],
+        log:
+            "logs/{project}/uniCARD/evidence_lock.log",
+        conda:
+            "../envs/python.yaml"
+        script:
+            "../scripts/lock_amr_evidence.py"
+
+
 rule uniCARD_makeDB:
     input:
         db=get_uniCARD_db(),
