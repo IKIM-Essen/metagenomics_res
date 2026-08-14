@@ -110,6 +110,75 @@ class EvidenceScriptTests(unittest.TestCase):
                 "sha256:bdcf4c994585af6dd6cb1cfbff78bcc73ab27dc30a299db5bb83766ca05b5de4",
             )
 
+    def test_host_context_is_bound_to_parent_sample_manifest(self):
+        class NamedInputs(dict):
+            __getattr__ = dict.__getitem__
+
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            inputs = {}
+            for name in (
+                "annotations",
+                "assembly_unicard",
+                "bin_summary",
+                "bin_taxonomy",
+                "contig_to_bin",
+                "coverage",
+                "gfa",
+                "paired_link_summary",
+                "paired_links",
+                "plasmid_summary",
+                "proteins",
+            ):
+                path = directory / f"{name}.txt"
+                path.write_text(f"{name}\n", encoding="utf-8")
+                inputs[name] = str(path)
+
+            def digest(path):
+                import hashlib
+
+                return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+            parent = directory / "sample.json"
+            parent.write_text(
+                json.dumps(
+                    {
+                        "schema": "resmag-culture-free-sample-evidence-lock-v1",
+                        "sample_name": "sample1",
+                        "artifacts": {
+                            name: {"sha256": digest(inputs[name])}
+                            for name in (
+                                "assembly_unicard",
+                                "coverage",
+                                "gfa",
+                                "paired_link_summary",
+                                "paired_links",
+                            )
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            output = directory / "host-context.json"
+            fake = SimpleNamespace(
+                input=NamedInputs(sample_manifest=str(parent), **inputs),
+                output=SimpleNamespace(json=str(output)),
+                params=SimpleNamespace(tool_versions={"das_tool": "1.1.7"}),
+                wildcards=SimpleNamespace(sample="sample1"),
+            )
+            runpy.run_path(
+                ROOT / "workflow/scripts/lock_host_context_evidence.py",
+                init_globals={"snakemake": fake},
+            )
+            payload = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(
+                payload["schema"], "resmag-culture-free-host-context-lock-v1"
+            )
+            self.assertEqual(
+                payload["evidence_roles"]["candidate_host_sources"],
+                ["contig_to_bin", "bin_summary", "bin_taxonomy"],
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

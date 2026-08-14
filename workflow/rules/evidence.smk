@@ -84,6 +84,8 @@ if retain_assembly_evidence():
     rule assembly_allele_count_evidence:
         input:
             contigs=get_assembly,
+            proteins=rules.gzip_proteins.output.faa,
+            annotations=rules.gzip_proteins.output.gff,
             bam=rules.map_to_assembly.output.bam,
             bai=rules.index_assembly_alignment.output.bai,
         output:
@@ -178,3 +180,33 @@ if retain_assembly_evidence() and direct_unicard_enabled():
             },
         script:
             "../scripts/lock_sample_evidence.py"
+
+    rule lock_culture_free_host_context_evidence:
+        input:
+            sample_manifest=rules.lock_culture_free_sample_evidence.output.json,
+            proteins=rules.gzip_proteins.output.faa,
+            annotations=rules.gzip_proteins.output.gff,
+            contig_to_bin=rules.move_dastool_output.output.contig2bin,
+            bin_summary=rules.bin_summary_sample.output.csv_bins,
+            bin_taxonomy=rules.bin_summary_sample.output.csv_tax,
+            plasmid_summary=rules.move_genomad_output.output.plasmid_tsv,
+            coverage=rules.assembly_contig_coverage_evidence.output.tsv,
+            gfa=rules.fastg2gfa.output.gfa,
+            paired_links=rules.assembly_paired_link_evidence.output.pairs,
+            paired_link_summary=rules.assembly_paired_link_evidence.output.summary,
+            assembly_unicard=rules.rich_uniCARD_assembly_proteins.output.tsv,
+        output:
+            json="results/{project}/output/evidence/ownership/{sample}.host_context.json",
+        log:
+            "logs/{project}/evidence/{sample}.host_context.log",
+        conda:
+            "../envs/python.yaml"
+        params:
+            tool_versions={
+                "pprodigal": "1.0.1",
+                "das_tool": "1.1.7",
+                "gtdbtk": "2.6.1",
+                "genomad": "1.11.2",
+            },
+        script:
+            "../scripts/lock_host_context_evidence.py"

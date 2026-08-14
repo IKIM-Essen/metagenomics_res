@@ -99,6 +99,9 @@ The profile also exports the evidence that downstream strain and ARG-host infere
 - coordinate-sorted read-to-contig BAM/BAI;
 - mapping/base-quality-filtered contig coverage and within-contig allele counts;
 - insert-size/alignment statistics plus one first-mate record per pair and aggregated contig links;
+- Prodigal protein/GFF context, DASTool contig-to-bin membership, bin QC/taxonomy, and geNomad
+  plasmid summaries in an optional second host-context lock, so the rapid evidence manifest does not
+  wait for the full binning/taxonomy path;
 - synchronized paired-FASTQ counts, full pair/name digests, and a compact sequence identity sketch;
 - a validated sample/control design and a checksum-addressed manifest for every sample.
 
@@ -145,7 +148,12 @@ results/<project>/output/
 │   ├── assembly/<sample>.allele_counts.tsv.gz
 │   ├── assembly/<sample>.paired_links.tsv.gz
 │   ├── assembly/<sample>.paired_link_summary.tsv
+│   ├── ownership/<sample>.host_context.json        # optional full host context
 │   └── manifests/<sample>.json
+├── contig2bins/<sample>/DASTool_contig2bin.tsv
+├── plasmids/<sample>/<sample>_plasmid_summary.tsv
+├── proteins/<sample>/<sample>_{proteins.faa,annotations.gff}.gz
+├── report/<sample>/<sample>_{bin_summary,bin_taxonomy}.csv
 └── resistance/
     ├── uniCARD/direct/<sample>/<sample>.{R1,R2}.tsv.gz
     ├── uniCARD/assembly_evidence/<sample>.tsv.gz
