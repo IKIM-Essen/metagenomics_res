@@ -4,11 +4,11 @@ rule coverm_metacoag:
         contigs=get_assembly,
     output:
         temp("results/{project}/binning_prep/{sample}/abundance.tsv"),
-    threads: 30
     log:
         "logs/{project}/coverm/{sample}.log",
     conda:
         "../envs/coverm.yaml"
+    threads: 30
     shell:
         "coverm contig -1 {input.bact_reads[0]} -2 {input.bact_reads[1]} "
         "-r {input.contigs} -o {output} -t {threads} > {log} 2>&1"
@@ -19,11 +19,11 @@ rule edit_abundance_file:
         "results/{project}/binning_prep/{sample}/abundance.tsv",
     output:
         temp("results/{project}/binning_prep/{sample}/abundance_metacoag.tsv"),
-    threads: 1
     log:
         "logs/{project}/coverm/{sample}.log",
     conda:
         "../envs/unix.yaml"
+    threads: 1
     shell:
         "cp {input} {output} && sed -i '1d' {output} > {log} 2>&1"
 
@@ -32,28 +32,36 @@ rule fastg_assembly_tree:
     input:
         contigs=get_assembly,
     output:
-        temp("results/{project}/binning_prep/{sample}/assembly_tree.fastg"),
-    threads: 2
+        fastg=(
+            "results/{project}/output/evidence/assembly/{sample}_assembly_tree.fastg"
+            if retain_assembly_evidence()
+            else temp("results/{project}/binning_prep/{sample}/assembly_tree.fastg")
+        ),
     log:
         "logs/{project}/fastg_assembly_tree/{sample}.log",
     conda:
         "../envs/megahit.yaml"
+    threads: 2
     script:
         "../scripts/fastg_assembly_tree.py"
 
 
 rule fastg2gfa:
     input:
-        "results/{project}/binning_prep/{sample}/assembly_tree.fastg",
+        rules.fastg_assembly_tree.output.fastg,
     output:
-        temp("results/{project}/binning_prep/{sample}/assembly_tree.gfa"),
-    params:
-        fastg2gfa_program="workflow/scripts/fastg2gfa",
-    threads: 2
+        gfa=(
+            "results/{project}/output/evidence/assembly/{sample}_assembly_tree.gfa"
+            if retain_assembly_evidence()
+            else temp("results/{project}/binning_prep/{sample}/assembly_tree.gfa")
+        ),
     log:
         "logs/{project}/fastg2gfa/{sample}.log",
     conda:
         "../envs/metacoag.yaml"
+    threads: 2
+    params:
+        fastg2gfa_program="workflow/scripts/fastg2gfa",
     shell:
         "{params.fastg2gfa_program} {input} > {output} 2> {log}"
 
@@ -61,19 +69,19 @@ rule fastg2gfa:
 rule metacoag_run:
     input:
         contigs=get_assembly,
-        gfa="results/{project}/binning_prep/{sample}/assembly_tree.gfa",
+        gfa=rules.fastg2gfa.output.gfa,
         abd="results/{project}/binning_prep/{sample}/abundance_metacoag.tsv",
         #assembly folder needs to be there
         folder=rules.megahit.output.outdir,
     output:
         out_tsv=temp("results/{project}/binning/metacoag/{sample}/contig_to_bin.tsv"),
-    params:
-        outdir=lambda wildcards, output: Path(output.out_tsv).parent,
-    threads: 4
     log:
         "logs/{project}/metacoag/{sample}.log",
     conda:
         "../envs/metacoag.yaml"
+    threads: 4
+    params:
+        outdir=lambda wildcards, output: Path(output.out_tsv).parent,
     shell:
         "metacoag --assembler megahit --graph {input.gfa} "
         "--contigs {input.contigs} --abundance {input.abd} "

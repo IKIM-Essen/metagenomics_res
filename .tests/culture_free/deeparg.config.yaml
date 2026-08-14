@@ -1,0 +1,14 @@
+culture-free-evidence:
+  deeparg:
+    enabled: true
+    container: "docker://example.invalid/deeparg@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    runtime-version: "test"
+    model-release: "test"
+    data-path: ".tests/culture_free/resources/deeparg"
+    database-digest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    device: cpu
+    min-probability: 0.8
+    alignment-identity: 50
+    alignment-evalue: 1e-10
+    alignment-overlap: 0.8
+    max-alignments-per-entry: 1000

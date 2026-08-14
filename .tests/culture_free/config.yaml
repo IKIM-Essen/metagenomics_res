@@ -45,6 +45,28 @@ culture-free-evidence:
     max-target-seqs: 25
     builder-commit: 0fd59150f3b241dc4cba58363c9a212170bd6471
     uniref-release: "2025_03"
-  retain-assembly-evidence: true
+  assembly-evidence:
+    enabled: true
+    minimum-mapping-quality: 20
+    minimum-base-quality: 20
+    maximum-pileup-depth: 100000
+  read-audit:
+    sketch-size: 16
+  control-aware:
+    enabled: true
+    require-matched-negative: true
+  deeparg:
+    enabled: false
+    container: "docker://example.invalid/deeparg@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    runtime-version: "test"
+    model-release: "test"
+    data-path: ".tests/culture_free/resources/deeparg"
+    database-digest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    device: cpu
+    min-probability: 0.8
+    alignment-identity: 50
+    alignment-evalue: 1e-10
+    alignment-overlap: 0.8
+    max-alignments-per-entry: 1000
 tablular-config: test
 testing: true

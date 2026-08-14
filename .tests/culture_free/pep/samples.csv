@@ -1,2 +1,3 @@
-sample_name,fq1,fq2
-sample1,.tests/culture_free/reads/sample1_R1.fastq,.tests/culture_free/reads/sample1_R2.fastq
+sample_name,fq1,fq2,sample_role,case_id,material_stage,matched_control,expected_taxon
+sample1,.tests/culture_free/reads/sample1_R1.fastq,.tests/culture_free/reads/sample1_R2.fastq,raw_specimen,case-1,raw_specimen,blank1,NCBITaxon:573
+blank1,.tests/culture_free/reads/sample1_R1.fastq,.tests/culture_free/reads/sample1_R2.fastq,negative_control,batch-1,control,,

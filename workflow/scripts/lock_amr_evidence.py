@@ -34,7 +34,7 @@ artifacts = {
     }.items()
 }
 payload = {
-    "schema": "resmag-culture-free-amr-evidence-lock-v1",
+    "schema": "resmag-culture-free-amr-evidence-lock-v2",
     "card_version": snakemake.params.card_version,
     "unicard_builder_commit": snakemake.params.builder_commit,
     "uniref_release": snakemake.params.uniref_release,
@@ -50,9 +50,22 @@ payload = {
             "bitscore", "qlen", "slen", "qcovhsp", "scovhsp", "qframe"
         ],
     },
+    "assembly_protein_search": {
+        "diamond_version": snakemake.params.diamond_version,
+        "mode": "blastp",
+        "sensitivity": snakemake.params.sensitivity,
+        "evalue": snakemake.params.evalue,
+        "max_target_seqs": snakemake.params.max_target_seqs,
+        "outfmt_fields": [
+            "qseqid", "sseqid", "stitle", "pident", "length", "mismatch",
+            "gapopen", "qstart", "qend", "sstart", "send", "evalue",
+            "bitscore", "qlen", "slen", "qcovhsp", "scovhsp"
+        ],
+    },
     "artifacts": artifacts,
     "warnings": [
         "DIAMOND-UniCARD hits are candidate sequence evidence, not phenotype calls",
+        "direct-read and assembly-protein searches are separate evidence views",
         "legacy UniCARD hierarchy category labels are display-only; use structured_aro_categories",
         "absence of a hit cannot establish susceptibility",
     ],

@@ -91,13 +91,15 @@ if direct_unicard_enabled():
             db_wo_ext=lambda wildcards, input: os.path.splitext(input.dmdb)[0],
             sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
             evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
-            max_targets=config["culture-free-evidence"]["direct-unicard"]["max-target-seqs"],
+            max_targets=config["culture-free-evidence"]["direct-unicard"][
+                "max-target-seqs"
+            ],
             outfmt=(
                 "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend "
                 "sstart send evalue bitscore qlen slen qcovhsp scovhsp qframe"
             ),
         shell:
-            "((diamond blastx -q {input.fastqs[0]} -d {params.db_wo_ext} "
+            "set -o pipefail; ((diamond blastx -q {input.fastqs[0]} -d {params.db_wo_ext} "
             "--{params.sensitivity} --evalue {params.evalue} "
             "--max-target-seqs {params.max_targets} --outfmt {params.outfmt} "
             "--threads {threads} | gzip -c > {output.r1}) && "
@@ -106,6 +108,35 @@ if direct_unicard_enabled():
             "--max-target-seqs {params.max_targets} --outfmt {params.outfmt} "
             "--threads {threads} | gzip -c > {output.r2})) > {log} 2>&1"
 
+    rule rich_uniCARD_assembly_proteins:
+        input:
+            faa=get_proteins,
+            dmdb=get_unicard_dmnd(),
+        output:
+            tsv="results/{project}/output/resistance/uniCARD/assembly_evidence/{sample}.tsv.gz",
+        log:
+            "logs/{project}/uniCARD/assembly_evidence/{sample}.log",
+        conda:
+            "../envs/diamond.yaml"
+        threads: 60
+        resources:
+            heavy=1,
+        params:
+            db_wo_ext=lambda wildcards, input: os.path.splitext(input.dmdb)[0],
+            sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
+            evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
+            max_targets=config["culture-free-evidence"]["direct-unicard"][
+                "max-target-seqs"
+            ],
+            outfmt=(
+                "6 qseqid sseqid stitle pident length mismatch gapopen qstart qend "
+                "sstart send evalue bitscore qlen slen qcovhsp scovhsp"
+            ),
+        shell:
+            "set -o pipefail; diamond blastp -q {input.faa[0]} -d {params.db_wo_ext} "
+            "--{params.sensitivity} --evalue {params.evalue} "
+            "--max-target-seqs {params.max_targets} --outfmt {params.outfmt} "
+            "--threads {threads} | gzip -c > {output.tsv} 2> {log}"
 
     rule export_CARD_ARO_categories:
         input:
@@ -119,7 +150,6 @@ if direct_unicard_enabled():
         script:
             "../scripts/export_card_aro_categories.py"
 
-
     rule lock_culture_free_AMR_evidence:
         input:
             card_json=get_card_db_file(),
@@ -129,20 +159,116 @@ if direct_unicard_enabled():
             categories=rules.export_CARD_ARO_categories.output.tsv,
         output:
             json="results/{project}/output/resistance/uniCARD/evidence-lock.json",
-        params:
-            card_version=config["card"]["version"],
-            builder_commit=config["culture-free-evidence"]["direct-unicard"]["builder-commit"],
-            uniref_release=config["culture-free-evidence"]["direct-unicard"]["uniref-release"],
-            diamond_version="2.1.12",
-            sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
-            evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
-            max_target_seqs=config["culture-free-evidence"]["direct-unicard"]["max-target-seqs"],
         log:
             "logs/{project}/uniCARD/evidence_lock.log",
         conda:
             "../envs/python.yaml"
+        params:
+            card_version=config["card"]["version"],
+            builder_commit=config["culture-free-evidence"]["direct-unicard"][
+                "builder-commit"
+            ],
+            uniref_release=config["culture-free-evidence"]["direct-unicard"][
+                "uniref-release"
+            ],
+            diamond_version="2.1.12",
+            sensitivity=config["culture-free-evidence"]["direct-unicard"]["sensitivity"],
+            evalue=config["culture-free-evidence"]["direct-unicard"]["evalue"],
+            max_target_seqs=config["culture-free-evidence"]["direct-unicard"][
+                "max-target-seqs"
+            ],
         script:
             "../scripts/lock_amr_evidence.py"
+
+
+if deeparg_enabled():
+
+    rule stage_reads_for_DeepARG_SS:
+        input:
+            fastqs=get_filtered_gz_fastqs,
+        output:
+            fasta=temp("results/{project}/deeparg_staging/{sample}.paired.fasta"),
+        log:
+            "logs/{project}/deeparg/{sample}.stage.log",
+        conda:
+            "../envs/python.yaml"
+        shell:
+            "python workflow/scripts/paired_fastq_to_fasta.py "
+            "--r1 {input.fastqs[0]} --r2 {input.fastqs[1]} --output {output.fasta} "
+            "> {log} 2>&1"
+
+    rule direct_DeepARG_SS:
+        input:
+            fasta=rules.stage_reads_for_DeepARG_SS.output.fasta,
+        output:
+            arg="results/{project}/output/resistance/deeparg/direct/{sample}/{sample}.mapping.ARG",
+            potential="results/{project}/output/resistance/deeparg/direct/{sample}/{sample}.mapping.potential.ARG",
+            alignments="results/{project}/output/resistance/deeparg/direct/{sample}/{sample}.align.daa.tsv",
+        log:
+            "logs/{project}/deeparg/{sample}.log",
+        container:
+            config["culture-free-evidence"]["deeparg"]["container"]
+        threads: 16
+        resources:
+            heavy=1,
+        params:
+            prefix=lambda wildcards, output: str(
+                Path(output.arg).parent / wildcards.sample
+            ),
+            data_path=config["culture-free-evidence"]["deeparg"]["data-path"],
+            device=config["culture-free-evidence"]["deeparg"]["device"],
+            min_probability=config["culture-free-evidence"]["deeparg"][
+                "min-probability"
+            ],
+            identity=config["culture-free-evidence"]["deeparg"]["alignment-identity"],
+            evalue=config["culture-free-evidence"]["deeparg"]["alignment-evalue"],
+            overlap=config["culture-free-evidence"]["deeparg"]["alignment-overlap"],
+            max_alignments=config["culture-free-evidence"]["deeparg"][
+                "max-alignments-per-entry"
+            ],
+        shell:
+            "deeparg predict --model SS --type nucl -i {input.fasta} -o {params.prefix} "
+            "--data-path {params.data_path} --hf-device {params.device} "
+            "--min-prob {params.min_probability} "
+            "--arg-alignment-identity {params.identity} "
+            "--arg-alignment-evalue {params.evalue} "
+            "--arg-alignment-overlap {params.overlap} "
+            "--arg-num-alignments-per-entry {params.max_alignments} > {log} 2>&1"
+
+    rule lock_DeepARG_evidence:
+        output:
+            json="results/{project}/output/resistance/deeparg/evidence-lock.json",
+        conda:
+            "../envs/python.yaml"
+        params:
+            runtime_version=config["culture-free-evidence"]["deeparg"][
+                "runtime-version"
+            ],
+            model_release=config["culture-free-evidence"]["deeparg"]["model-release"],
+            database_path=config["culture-free-evidence"]["deeparg"]["data-path"],
+            database_digest=config["culture-free-evidence"]["deeparg"][
+                "database-digest"
+            ],
+            container=config["culture-free-evidence"]["deeparg"]["container"],
+            parameters={
+                "min_probability": config["culture-free-evidence"]["deeparg"][
+                    "min-probability"
+                ],
+                "alignment_identity": config["culture-free-evidence"]["deeparg"][
+                    "alignment-identity"
+                ],
+                "alignment_evalue": config["culture-free-evidence"]["deeparg"][
+                    "alignment-evalue"
+                ],
+                "alignment_overlap": config["culture-free-evidence"]["deeparg"][
+                    "alignment-overlap"
+                ],
+                "max_alignments_per_entry": config["culture-free-evidence"]["deeparg"][
+                    "max-alignments-per-entry"
+                ],
+            },
+        script:
+            "../scripts/write_deeparg_provenance.py"
 
 
 rule uniCARD_makeDB:
@@ -268,79 +394,3 @@ rule resistance_abundance_all:
     threads: 5
     script:
         "../scripts/uniCARD_abundance.py"
-
-
-"""
-# updates CARD database to use for contigs instead of reads
-# read based classification must be finished before
-rule CARD_load_DB:
-    input:
-        db=get_card_db_file(),
-        read_args=expand(
-            "results/{project}/output/resistance/CARD/reads/{sample}/{sample}.gene_mapping_data.txt",
-            sample=get_samples(),
-            project=get_project(),
-        ),
-    output:
-        touch("results/CARD_load_DB.done"),
-    log:
-        "logs/CARD_load_DB.log",
-    conda:
-        "../envs/card.yaml"
-    shell:
-        "rgi clean --local && "
-        "rgi load --card_json {input.db} --local > {log} 2>&1"
-
-
-rule CARD_assembly_run:
-    input:
-        faa=rules.gzip_proteins.output.faa,
-        db=rules.CARD_load_DB.output,
-    output:
-        txt="results/{project}/output/resistance/CARD/assembly/{sample}/{sample}.txt",
-        json="results/{project}/output/resistance/CARD/assembly/{sample}/{sample}.json",
-    params:
-        path_wo_ext=lambda wildcards, output: Path(output.txt).with_suffix(""),
-    log:
-        "logs/{project}/ARGs/assembly/{sample}.log",
-    threads: 64
-    conda:
-        "../envs/card.yaml"
-    shell:
-        "rgi main -i {input.faa} -o {params.path_wo_ext} "
-        "-t protein -a DIAMOND --local "
-        "-n {threads} --clean > {log} 2>&1"
-
-
-use rule CARD_read_sample_summary as CARD_assembly_sample_summary with:
-    input:
-        txt=rules.CARD_assembly_run.output.txt,
-        json=rules.CARD_assembly_run.output.json,
-    output:
-        csv="results/{project}/output/resistance/CARD/assembly/{sample}/{sample}_assembly_ARGs.csv",
-    params:
-        case="assembly",
-    log:
-        "logs/{project}/ARGs/assembly/{sample}.log",
-
-
-use rule CARD_assembly_run as CARD_mag_run with:
-    input:
-        fa="results/{project}/output/fastas/{sample}/mags/{binID}.fa.gz",
-        db=rules.CARD_load_DB.output,
-    output:
-        txt="results/{project}/output/resistance/CARD/mags/{sample}/{binID}.txt",
-    params:
-        path_wo_ext=lambda wildcards, output: Path(output.txt).with_suffix(""),
-    log:
-        "logs/{project}/ARGs/mags/{sample}/{binID}.log",
-
-
-rule wrap_mag_ARGs:
-    input:
-        get_mag_ARGs,
-    output:
-        touch("results/{project}/output/ARGs/mags/{sample}/all_mags.done"),
-    log:
-        "logs/{project}/ARGs/mags/{sample}/all_mags.log",
-"""

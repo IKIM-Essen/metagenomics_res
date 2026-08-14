@@ -191,9 +191,72 @@ def run_rgi_bwt():
 
 
 def retain_assembly_evidence():
-    return culture_free_enabled() and bool(
-        culture_free_config().get("retain-assembly-evidence", False)
+    legacy = culture_free_config().get("retain-assembly-evidence", False)
+    configured = (
+        culture_free_config().get("assembly-evidence", {}).get("enabled", legacy)
     )
+    return culture_free_enabled() and bool(configured)
+
+
+def deeparg_enabled():
+    return culture_free_enabled() and bool(
+        culture_free_config().get("deeparg", {}).get("enabled", False)
+    )
+
+
+def control_aware_enabled():
+    return culture_free_enabled() and bool(
+        culture_free_config().get("control-aware", {}).get("enabled", False)
+    )
+
+
+def _pep_text(row, field, default=""):
+    value = row.get(field, default)
+    if value is None or value != value:
+        return default
+    return str(value).strip()
+
+
+def culture_free_sample_records():
+    records = []
+    for sample in get_samples():
+        row = pep.sample_table.loc[sample]
+        records.append(
+            {
+                "sample_name": sample,
+                "sample_role": _pep_text(row, "sample_role", "unspecified"),
+                "case_id": _pep_text(row, "case_id", sample),
+                "material_stage": _pep_text(row, "material_stage", "unspecified"),
+                "matched_control": _pep_text(row, "matched_control"),
+                "expected_taxon": _pep_text(row, "expected_taxon"),
+            }
+        )
+    return records
+
+
+def culture_free_sample_metadata(sample):
+    return next(
+        item for item in culture_free_sample_records() if item["sample_name"] == sample
+    )
+
+
+def get_deeparg_sample_outputs(wildcards):
+    if not deeparg_enabled():
+        return []
+    return [
+        f"results/{wildcards.project}/output/resistance/deeparg/direct/"
+        f"{wildcards.sample}/{wildcards.sample}.mapping.ARG",
+        f"results/{wildcards.project}/output/resistance/deeparg/direct/"
+        f"{wildcards.sample}/{wildcards.sample}.mapping.potential.ARG",
+        f"results/{wildcards.project}/output/resistance/deeparg/direct/"
+        f"{wildcards.sample}/{wildcards.sample}.align.daa.tsv",
+    ]
+
+
+def get_deeparg_lock(wildcards):
+    if not deeparg_enabled():
+        return []
+    return [f"results/{wildcards.project}/output/resistance/deeparg/evidence-lock.json"]
 
 
 """
